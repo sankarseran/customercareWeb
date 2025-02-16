@@ -2,11 +2,11 @@
 <div id="container">
   <div class="header">
     <div class="summary">
-      <div class="subject">Subject: {{ (ticket$ | async)?.subject }}</div>
-      <div class="created-on">Created on: {{ (ticket$ | async)?.createdAt | date }}</div>
+      <div class="subject">Subject: {{ ticket?.subject }}</div>
+      <div class="created-on">Created on: {{ ticket?.createdAt | date }}</div>
     </div>
-    <button mat-stroked-button [disabled]="(ticket$ | async)?.status == 'resolved'"
-      (click)="closeTicket(ticketId)">Resolve ticket</button>
+    <button mat-stroked-button [disabled]="ticket?.status == 'resolved'"
+      (click)="closeTicket()">Resolve ticket</button>
   </div>
   <mat-divider></mat-divider>
   <div class="messages">
@@ -29,6 +29,6 @@
       <input matInput formControlName="text">
     </mat-form-field>
     <button mat-raised-button type="submit" color="primary"
-      [disabled]="((ticket$ | async)?.status == 'resolved') || (messageForm.status !== 'VALID')">Send</button>
+      [disabled]="(ticket?.status == 'resolved') || (messageForm.status !== 'VALID')">Send</button>
   </form>
 </div>

@@ -42,6 +42,7 @@ export class TicketsService {
   }
 
   getTicket(ticketId: number) {
+    console.log('getTicket', ticketId)
     return this.http.get<ApiTicket>(`${this.baseUrl}/tickets/${ticketId}`).pipe(
       map(({ createdAt, ...other }) => ({
         ...other,
@@ -51,6 +52,7 @@ export class TicketsService {
   }
 
   getTicketMessages(ticketId: number) {
+    console.log('getTicketMessages', ticketId)
     type Body = {
       data: ApiMessage[];
     }
