@@ -5,23 +5,28 @@ import {
   OnChanges,
   SimpleChanges,
   OnDestroy,
+  DestroyRef,
 } from '@angular/core';
 import { TicketsService } from '../api/tickets.service';
-import { Message, Ticket } from '../api/Message';
-import { catchError, Observable, switchMap, tap, Subscription } from 'rxjs';
+import { Message, Ticket } from '../api/Types';
+import { tap, Subscription } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
 import { FormBuilder, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { getTicket, getTicketMessages } from '../@state/tickets.actions';
+import { ticketsFeature } from '../@state/tickets.reducer';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-ticket',
   templateUrl: './ticket.component.html',
   styleUrls: ['./ticket.component.scss'],
 })
-export class TicketComponent implements OnInit, OnChanges, OnDestroy {
-  @Input() ticketId: number = 0; // Input property for ticketId
+export class TicketComponent implements OnInit, OnChanges {
+  @Input() ticketId: number = 0;
   ticket: Ticket | null = null;
-  messages$: Observable<Message[]> | null = null;
+  messages$ = this.store.select(ticketsFeature.selectTicketMessages);
+
   messageForm = this.fb.group({
     text: this.fb.control('', [Validators.required]),
   });
@@ -31,51 +36,39 @@ export class TicketComponent implements OnInit, OnChanges, OnDestroy {
   constructor(
     private api: TicketsService,
     private snackBar: MatSnackBar,
-    private router: Router,
-    private fb: FormBuilder
+    private destroyRef: DestroyRef,
+    private fb: FormBuilder,
+    private store: Store
   ) {}
 
-  ngOnInit(): void {
-    // Initialization logic (if needed)
-  }
+  ngOnInit(): void {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    // React to changes in the ticketId input
     if (changes['ticketId'] && changes['ticketId'].currentValue) {
       this.loadTicketAndMessages(changes['ticketId'].currentValue);
     }
   }
 
-  ngOnDestroy(): void {
-    // Unsubscribe from all subscriptions to prevent memory leaks
-    this.subscription.unsubscribe();
-  }
-
   loadTicketAndMessages(ticketId: number): void {
-    // Load ticket details
-    this.api.getTicket(ticketId).pipe(
-      tap((ticket) => {
-        if (ticket.status === 'resolved') {
-          this.messageForm.disable();
-        } else {
-          this.messageForm.enable();
-        }
-      })
-    ).subscribe((ticket) => {
-      this.ticket = ticket;
-      this.messages$ = this.api.getTicketMessages(ticket.id);
-    });
+    this.store.dispatch(getTicket({ payload: ticketId }));
 
-    // Load messages for the ticket
-    // this.messages$ = this.ticket$.pipe(
-    //   switchMap(({ id }) => ),
-    //   catchError((err, caught) => {
-    //     this.router.navigate(['home', 'tickets', 'not-found']);
-    //     return caught;
-    //   })
-    // );
+    this.store
+      .select(ticketsFeature.selectTicket)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        tap((ticket) => {
+          if (ticket?.status === 'resolved') {
+            this.messageForm.disable();
+          } else {
+            this.messageForm.enable();
+          }
+        })
+      )
+      .subscribe((ticket) => {
+        this.ticket = ticket;
+        this.store.dispatch(getTicketMessages({ payload: ticketId }));
+      });
 
-    // Reset the message form
     this.messageForm.reset();
   }
 
@@ -85,10 +78,13 @@ export class TicketComponent implements OnInit, OnChanges, OnDestroy {
 
   closeTicket(): void {
     this.subscription.add(
-      this.api.resolveTicket(this.ticketId).subscribe((t) => {
-        this.loadTicketAndMessages(this.ticketId); // Reload ticket after resolving
-        this.snackBar.open('Ticket resolved', 'Close', { duration: 3000 });
-      })
+      this.api
+        .resolveTicket(this.ticketId)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((t) => {
+          this.loadTicketAndMessages(this.ticketId);
+          this.snackBar.open('Ticket resolved', 'Close', { duration: 3000 });
+        })
     );
   }
 
@@ -104,8 +100,9 @@ export class TicketComponent implements OnInit, OnChanges, OnDestroy {
           senderType,
           senderId,
         })
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((message) => {
-          this.loadTicketAndMessages(this.ticketId); // Reload ticket after sending a message
+          this.loadTicketAndMessages(this.ticketId);
           this.snackBar.open('Message sent', 'Close', { duration: 3000 });
         })
     );

@@ -1,0 +1,31 @@
+<div class="check-status-btn">
+  <button mat-raised-button color="primary" (click)="checkStatus()">Check Status</button>
+</div>
+<div class="bulk-send-jobs">
+  <mat-card *ngFor="let job of jobs$ | async" class="job-card">
+    <mat-card-header>
+      <mat-card-title>{{ job.message }}</mat-card-title>
+      <mat-card-subtitle>
+        Status: {{ job.status }} | Processed: {{ job.processedTickets }}/{{ job.totalTickets }} | Failures: {{
+        job.errorCount }}
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content class="job-content">
+      <p><strong>Job ID:</strong> {{ job.jobId }}</p>
+      <p><strong>Created At:</strong> {{ job.createdAt | date:'short' }}</p>
+      <p *ngIf="job.completedAt"><strong>Completed At:</strong> {{ job.completedAt | date:'short' }}</p>
+    </mat-card-content>
+    <mat-card-actions *ngIf="job.failures && job.failures.length">
+      <mat-expansion-panel class="failure">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            View Failures ({{ job.failures.length }})
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="failure-details" *ngFor="let failure of job.failures">
+          <p>Ticket ID: {{ failure.ticketId }} - Customer ID: {{ failure.customerId }}</p>
+        </div>
+      </mat-expansion-panel>
+    </mat-card-actions>
+  </mat-card>
+</div>

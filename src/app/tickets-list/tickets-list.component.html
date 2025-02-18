@@ -9,12 +9,28 @@
       </mat-select>
     </mat-form-field>
   </div>
+
+  <div class="select-all">
+    <mat-checkbox ch (change)="selectAll($event)" [indeterminate]="isPartiallySelected()">All</mat-checkbox>
+    <button mat-stroked-button [disabled]="selectedItems.length === 0" (click)="openBulkSendModal()">Create Bulk
+      Send</button>
+  </div>
+
   <div id="tickets">
     <mat-nav-list>
-      <mat-list-item *ngFor="let item of tickets | async" routerLinkActive="active-link"
+      <mat-list-item *ngFor="let item of tickets; trackBy: trackByItems" routerLinkActive="active-link"
         [routerLink]="['tickets', item.id]">
-        <a matListItemTitle>{{item.subject}}</a>
-        <span matListItemLine>{{item.status}}</span>
+        <div class="ticket-message">
+          <div *ngIf="item.status === 'unresolved';">
+            <mat-checkbox [checked]="isSelected(item)" (change)="toggleSelection(item)"
+              (click)="$event.stopPropagation()">
+            </mat-checkbox>
+          </div>
+          <div>
+            <a matListItemTitle matTooltip="{{item.subject.length > 26 ? item.subject : ''}}">{{item.subject}}</a>
+            <span matListItemLine>{{item.status}}</span>
+          </div>
+        </div>
       </mat-list-item>
     </mat-nav-list>
   </div>

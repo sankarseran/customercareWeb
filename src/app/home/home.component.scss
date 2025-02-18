@@ -24,4 +24,6 @@ mat-toolbar {
   top: 0;
   left: 0;
   z-index: 42;
+  display: flex;
+  justify-content: space-between;
 }

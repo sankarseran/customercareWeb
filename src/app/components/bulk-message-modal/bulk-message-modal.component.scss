@@ -1,0 +1,11 @@
+form {
+  padding: 8px 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep {
+  mat-form-field {
+    width: 100%;
+  }
+}

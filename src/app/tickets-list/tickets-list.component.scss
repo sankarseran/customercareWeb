@@ -17,6 +17,38 @@
   overflow: auto;
 }
 
+.select-all {
+  display: flex;
+  align-items: center;
+  padding: 10px 10px 0px 10px;
+
+  button {
+    margin-left: 10px;
+  }
+}
+
 .active-link {
   background-color: rgb(230, 230, 230);
+}
+
+.ticket-message {
+  display: flex;
+}
+
+::ng-deep {
+  #tickets {
+    .mdc-label {
+      padding: 0px;
+      padding-bottom: 15px;
+      width: 200px;
+    }
+
+    .mdc-checkbox {
+      position: absolute !important;
+      left: 175px;
+      top: 20px;
+      z-index: 1;
+    }
+  }
+
 }
